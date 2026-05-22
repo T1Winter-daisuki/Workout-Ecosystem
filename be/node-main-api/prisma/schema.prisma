@@ -1,0 +1,422 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model achievements {
+  id                String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name              String
+  description       String?
+  icon_url          String?
+  trigger_type      String
+  threshold_value   Int?
+  user_achievements user_achievements[]
+}
+
+model ai_voice_models {
+  id             String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  model_name     String
+  artist_name    String?
+  status         String   @default("training")
+  model_file_url String?
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  songs          songs[]
+}
+
+model daily_nutrition {
+  id                String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id           String   @db.Uuid
+  date              DateTime @db.Date
+  target_calories   Decimal? @db.Decimal(7, 2)
+  total_calories_in Decimal  @default(0) @db.Decimal(7, 2)
+  total_protein     Decimal  @default(0) @db.Decimal(6, 2)
+  total_carbs       Decimal  @default(0) @db.Decimal(6, 2)
+  total_fats        Decimal  @default(0) @db.Decimal(6, 2)
+  water_ml_target   Decimal? @db.Decimal(6, 2)
+  water_ml_actual   Decimal  @default(0) @db.Decimal(6, 2)
+  users             users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meals             meals[]
+
+  @@unique([user_id, date])
+  @@index([user_id, date], map: "idx_daily_nutrition_user_date")
+}
+
+model email_verification_tokens {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  token      String   @unique
+  expires_at DateTime @db.Timestamptz(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model exercise_categories {
+  id          String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name        String      @unique
+  description String?
+  exercises   exercises[]
+}
+
+model exercises {
+  id                         String                       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  category_id                String?                      @db.Uuid
+  name                       String                       @unique
+  primary_muscle_group       String
+  secondary_muscles          String?
+  equipment_needed           String?
+  difficulty_level           String?
+  video_url                  String?
+  exercise_categories        exercise_categories?         @relation(fields: [category_id], references: [id], onUpdate: NoAction)
+  personal_records           personal_records[]
+  workout_sets               workout_sets[]
+  workout_template_exercises workout_template_exercises[]
+}
+
+model food_items {
+  id                String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name              String
+  brand             String?
+  calories_per_100g Decimal           @db.Decimal(7, 2)
+  protein_per_100g  Decimal           @default(0) @db.Decimal(6, 2)
+  carbs_per_100g    Decimal           @default(0) @db.Decimal(6, 2)
+  fats_per_100g     Decimal           @default(0) @db.Decimal(6, 2)
+  barcode           String?           @unique
+  is_verified       Boolean           @default(false)
+  meal_food_items   meal_food_items[]
+}
+
+model listening_history {
+  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id                 String    @db.Uuid
+  song_id                 String    @db.Uuid
+  workout_id              String?   @db.Uuid
+  played_duration_seconds Int?
+  played_at               DateTime  @default(now()) @db.Timestamptz(6)
+  songs                   songs     @relation(fields: [song_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                   users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workouts                workouts? @relation(fields: [workout_id], references: [id], onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_listening_history_user_id")
+}
+
+model meal_food_items {
+  id             String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  meal_id        String     @db.Uuid
+  food_item_id   String     @db.Uuid
+  quantity_grams Decimal    @db.Decimal(7, 2)
+  calories       Decimal    @db.Decimal(7, 2)
+  protein        Decimal    @default(0) @db.Decimal(6, 2)
+  carbs          Decimal    @default(0) @db.Decimal(6, 2)
+  fats           Decimal    @default(0) @db.Decimal(6, 2)
+  food_items     food_items @relation(fields: [food_item_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meals          meals      @relation(fields: [meal_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model meal_templates {
+  id        String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id   String  @db.Uuid
+  name      String
+  meal_type String?
+  users     users   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model meals {
+  id                 String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  daily_nutrition_id String            @db.Uuid
+  meal_type          String
+  eaten_at           DateTime          @default(now()) @db.Timestamptz(6)
+  meal_food_items    meal_food_items[]
+  daily_nutrition    daily_nutrition   @relation(fields: [daily_nutrition_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([daily_nutrition_id], map: "idx_meals_daily_nutrition_id")
+}
+
+model notifications {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  type       String
+  title      String
+  body       String?
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_notifications_user_unread", where: raw("(is_read = false)"))
+}
+
+model password_reset_tokens {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  token      String   @unique
+  expires_at DateTime @db.Timestamptz(6)
+  used       Boolean  @default(false)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model personal_records {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id       String    @db.Uuid
+  exercise_id   String    @db.Uuid
+  weight_kg     Decimal?  @db.Decimal(6, 2)
+  reps          Int?
+  estimated_1rm Decimal?  @db.Decimal(6, 2)
+  recorded_at   DateTime  @default(now()) @db.Timestamptz(6)
+  exercises     exercises @relation(fields: [exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model playlist_songs {
+  id          String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  playlist_id String    @db.Uuid
+  song_id     String    @db.Uuid
+  order_index Int
+  playlists   playlists @relation(fields: [playlist_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  songs       songs     @relation(fields: [song_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([playlist_id, song_id])
+}
+
+model playlists {
+  id             String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id        String           @db.Uuid
+  name           String
+  context        String?
+  is_public      Boolean          @default(false)
+  created_at     DateTime         @default(now()) @db.Timestamptz(6)
+  playlist_songs playlist_songs[]
+  users          users            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model program_workouts {
+  id                String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  program_id        String            @db.Uuid
+  template_id       String            @db.Uuid
+  week_number       Int
+  day_of_week       Int
+  training_programs training_programs @relation(fields: [program_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workout_templates workout_templates @relation(fields: [template_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model sessions {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id       String   @db.Uuid
+  refresh_token String   @unique
+  device_info   String?
+  platform      String?
+  expires_at    DateTime @db.Timestamptz(6)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model song_ratings {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id    String   @db.Uuid
+  song_id    String   @db.Uuid
+  rating     Int?     @db.SmallInt
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  songs      songs    @relation(fields: [song_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, song_id])
+}
+
+model songs {
+  id                String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  voice_model_id    String?             @db.Uuid
+  title             String
+  artist            String?
+  duration_seconds  Int?
+  bpm               Int?
+  genre             String?
+  is_ai_cover       Boolean             @default(false)
+  file_url          String
+  cover_art_url     String?
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  listening_history listening_history[]
+  playlist_songs    playlist_songs[]
+  song_ratings      song_ratings[]
+  ai_voice_models   ai_voice_models?    @relation(fields: [voice_model_id], references: [id], onUpdate: NoAction)
+}
+
+model supplement_logs {
+  id            String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id       String      @db.Uuid
+  supplement_id String      @db.Uuid
+  quantity      Decimal     @db.Decimal(6, 2)
+  taken_at      DateTime    @default(now()) @db.Timestamptz(6)
+  supplements   supplements @relation(fields: [supplement_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users         users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model supplements {
+  id                   String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String
+  category             String?
+  serving_size_g       Decimal?          @db.Decimal(6, 2)
+  calories_per_serving Decimal?          @db.Decimal(6, 2)
+  supplement_logs      supplement_logs[]
+}
+
+model training_programs {
+  id               String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id          String             @db.Uuid
+  name             String
+  duration_weeks   Int
+  goal             String?
+  is_active        Boolean            @default(false)
+  start_date       DateTime?          @db.Date
+  program_workouts program_workouts[]
+  users            users              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_achievements {
+  id             String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id        String       @db.Uuid
+  achievement_id String       @db.Uuid
+  unlocked_at    DateTime     @default(now()) @db.Timestamptz(6)
+  achievements   achievements @relation(fields: [achievement_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users          users        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, achievement_id])
+}
+
+model user_biometrics {
+  id                  String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id             String   @db.Uuid
+  height_cm           Decimal? @db.Decimal(5, 2)
+  weight_kg           Decimal? @db.Decimal(5, 2)
+  body_fat_percentage Decimal? @db.Decimal(4, 2)
+  activity_level      String?
+  tdee_baseline       Decimal? @db.Decimal(7, 2)
+  recorded_at         DateTime @default(now()) @db.Timestamptz(6)
+  users               users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_user_biometrics_user_id")
+}
+
+model user_goals {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id          String    @db.Uuid
+  goal_type        String
+  target_weight_kg Decimal?  @db.Decimal(5, 2)
+  target_body_fat  Decimal?  @db.Decimal(4, 2)
+  target_date      DateTime? @db.Date
+  is_active        Boolean   @default(true)
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  users            users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_notification_prefs {
+  id                  String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id             String  @unique @db.Uuid
+  push_workout        Boolean @default(true)
+  push_nutrition      Boolean @default(true)
+  push_music          Boolean @default(false)
+  email_weekly_report Boolean @default(true)
+  users               users   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_oauth {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id          String   @db.Uuid
+  provider         String
+  provider_user_id String
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  users            users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider, provider_user_id])
+}
+
+model users {
+  id                        String                      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                     String                      @unique
+  username                  String                      @unique
+  password_hash             String?
+  role                      String                      @default("user")
+  email_verified            Boolean                     @default(false)
+  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
+  daily_nutrition           daily_nutrition[]
+  email_verification_tokens email_verification_tokens[]
+  listening_history         listening_history[]
+  meal_templates            meal_templates[]
+  notifications             notifications[]
+  password_reset_tokens     password_reset_tokens[]
+  personal_records          personal_records[]
+  playlists                 playlists[]
+  sessions                  sessions[]
+  song_ratings              song_ratings[]
+  supplement_logs           supplement_logs[]
+  training_programs         training_programs[]
+  user_achievements         user_achievements[]
+  user_biometrics           user_biometrics[]
+  user_goals                user_goals[]
+  user_notification_prefs   user_notification_prefs?
+  user_oauth                user_oauth[]
+  workout_templates         workout_templates[]
+  workouts                  workouts[]
+}
+
+model workout_sets {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  workout_id        String    @db.Uuid
+  exercise_id       String    @db.Uuid
+  set_number        Int
+  reps              Int?
+  weight_kg         Decimal?  @db.Decimal(6, 2)
+  rest_time_seconds Int?
+  is_warmup         Boolean   @default(false)
+  rpe               Decimal?  @db.Decimal(3, 1)
+  exercises         exercises @relation(fields: [exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workouts          workouts  @relation(fields: [workout_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([workout_id], map: "idx_workout_sets_workout_id")
+}
+
+model workout_template_exercises {
+  id                String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  template_id       String            @db.Uuid
+  exercise_id       String            @db.Uuid
+  sets              Int?
+  reps              Int?
+  weight_kg         Decimal?          @db.Decimal(6, 2)
+  order_index       Int
+  exercises         exercises         @relation(fields: [exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workout_templates workout_templates @relation(fields: [template_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model workout_templates {
+  id                         String                       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id                    String                       @db.Uuid
+  name                       String
+  description                String?
+  is_public                  Boolean                      @default(false)
+  created_at                 DateTime                     @default(now()) @db.Timestamptz(6)
+  program_workouts           program_workouts[]
+  workout_template_exercises workout_template_exercises[]
+  users                      users                        @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workouts                   workouts[]
+}
+
+model workouts {
+  id                String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id           String              @db.Uuid
+  template_id       String?             @db.Uuid
+  start_time        DateTime            @default(now()) @db.Timestamptz(6)
+  end_time          DateTime?           @db.Timestamptz(6)
+  status            String              @default("in_progress")
+  total_volume_kg   Decimal?            @db.Decimal(10, 2)
+  calories_burned   Int?
+  notes             String?
+  listening_history listening_history[]
+  workout_sets      workout_sets[]
+  workout_templates workout_templates?  @relation(fields: [template_id], references: [id], onUpdate: NoAction)
+  users             users               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([start_time], map: "idx_workouts_start_time")
+  @@index([user_id], map: "idx_workouts_user_id")
+}
