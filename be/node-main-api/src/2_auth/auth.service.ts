@@ -25,10 +25,10 @@ const generateTokens = (payload: JwtPayload) => {
 
 // Chỉ admin tạo
 export const registerUser = async (payload: RegisterPayload) => {
-  const { email, username, temporaryPassword } = payload;
+  const { username, temporaryPassword } = payload;
 
   const existing = await prisma.users.findFirst({
-    where: { OR: [{ email }, { username }] },
+    where: { username },
   });
   if (existing) throw new Error('Email hoặc username đã tồn tại');
 
@@ -36,11 +36,10 @@ export const registerUser = async (payload: RegisterPayload) => {
 
   // OTP kích hoạt
   const otp = generateOTP();
-  sendOTPEmail(email, otp);
 
   const user = await prisma.users.create({
     data: {
-      email,
+      email: '',
       username,
       password_hash,
       role: 'user',
@@ -48,32 +47,50 @@ export const registerUser = async (payload: RegisterPayload) => {
     },
   });
 
-  await redis.set(`otp:activate:${email}`, otp, 'EX', 180);
+  await redis.set(`otp:activate:${username}`, otp, 'EX', 180)
 
   return {
-    message: 'Tài khoản đã tạo, OTP kích hoạt đã gửi về email',
+    message: 'Tài khoản đã tạo thành công',
     userId: user.id,
   };
 };
 
+// nhập email để nhận OTP
+export const requestActivateOTP = async (username: string, email: string) => {
+  const user = await prisma.users.findUnique({ where: { username } })
+  if (!user) throw new Error('Tài khoản không tồn tại')
+  if (user.email_verified) throw new Error('Tài khoản đã được kích hoạt')
+
+  // Kiểm tra email chưa được dùng bởi acc khác
+  const emailExist = await prisma.users.findFirst({ where: { email } })
+  if (emailExist) throw new Error('Email đã được sử dụng')
+
+  const otp = generateOTP()
+  await redis.set(`otp:activate:${username}`, otp, 'EX', 180)
+  sendOTPEmail(email, otp)
+
+  return { message: 'OTP đã gửi về email' }
+}
+
 // Kích hoạt acc lần đầu
 export const activateAccount = async (
+  username: string,
   email: string,
   otp: string,
   newPassword: string,
 ) => {
-  const stored = await redis.get(`otp:activate:${email}`);
+  const stored = await redis.get(`otp:activate:${username}`);
   if (!stored || stored !== otp)
     throw new Error('OTP không hợp lệ hoặc đã hết hạn');
 
   const password_hash = await bcrypt.hash(newPassword, 10);
 
   await prisma.users.update({
-    where: { email },
-    data: { email_verified: true, password_hash },
+    where: { username },
+    data: { email, email_verified: true, password_hash },
   });
 
-  await redis.del(`otp:activate:${email}`);
+  await redis.del(`otp:activate:${username}`);
   return { message: 'Tài khoản đã kích hoạt thành công' };
 };
 
@@ -118,8 +135,8 @@ export const forgotPassword = async (email: string) => {
   if (!user) throw new Error('Email không tồn tại');
 
   const otp = generateOTP();
-  await redis.set(`otp:reset:${email}`, otp, 'EX', 300);
-  await sendOTPEmail(email, otp);
+  await redis.set(`otp:reset:${email}`, otp, 'EX', 180);
+  sendOTPEmail(email, otp);
 
   return { message: 'OTP đặt lại mật khẩu đã gửi về email' };
 };
@@ -144,21 +161,28 @@ export const resetPassword = async (
   return { message: 'Đặt lại mật khẩu thành công' };
 };
 
-// Gửi lại OTP
-export const resendOTP = async (email: string, type: 'activate' | 'reset') => {
-  const user = await prisma.users.findUnique({ where: { email } });
-  if (!user) throw new Error('Email không tồn tại');
+export const resendOTP = async (
+  identifier: string,
+  type: 'activate' | 'reset'
+) => {
+  if (type === 'activate') {
+    const user = await prisma.users.findUnique({ where: { username: identifier } })
+    if (!user) throw new Error('Tài khoản không tồn tại')
+    if (user.email_verified) throw new Error('Tài khoản đã được kích hoạt rồi')
 
-  if (type === 'activate' && user.email_verified) {
-    throw new Error('Tài khoản đã được kích hoạt rồi');
+    const otp = generateOTP()
+    await redis.set(`otp:activate:${identifier}`, otp, 'EX', 180)
+    return { message: 'OTP mới đã được tạo' }
   }
 
-  const otp = generateOTP();
-  await redis.set(`otp:${type}:${email}`, otp, 'EX', 300);
-  await sendOTPEmail(email, otp);
+  const user = await prisma.users.findUnique({ where: { email: identifier } })
+  if (!user) throw new Error('Email không tồn tại')
 
-  return { message: 'OTP mới đã được gửi về email' };
-};
+  const otp = generateOTP()
+  await redis.set(`otp:reset:${identifier}`, otp, 'EX', 180)
+  sendOTPEmail(identifier, otp)
+  return { message: 'OTP mới đã được gửi về email' }
+}
 
 // Cấp accessTok
 export const refreshAccessToken = async (refreshToken: string) => {

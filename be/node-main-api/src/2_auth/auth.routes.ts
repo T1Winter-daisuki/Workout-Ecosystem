@@ -14,6 +14,9 @@ const router = Router();
 // Admin tạo tài khoản
 router.post('/register', authController.register);
 
+// User nhập email để nhận OTP kích hoạt
+router.post('/request-activate-otp', otpRateLimit, authController.requestActivateOTP)
+
 // Kích hoạt tài khoản lần đầu
 router.post('/activate', validActivate, authController.activateAccount);
 
