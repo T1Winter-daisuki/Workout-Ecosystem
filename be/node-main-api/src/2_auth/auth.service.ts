@@ -36,7 +36,7 @@ export const registerUser = async (payload: RegisterPayload) => {
 
   // OTP kích hoạt
   const otp = generateOTP();
-  await sendOTPEmail(email, otp);
+  sendOTPEmail(email, otp);
 
   const user = await prisma.users.create({
     data: {
