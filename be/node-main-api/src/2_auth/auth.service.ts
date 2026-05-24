@@ -34,6 +34,10 @@ export const registerUser = async (payload: RegisterPayload) => {
 
   const password_hash = await bcrypt.hash(temporaryPassword, 10);
 
+  // OTP kích hoạt
+  const otp = generateOTP();
+  await sendOTPEmail(email, otp);
+
   const user = await prisma.users.create({
     data: {
       email,
@@ -44,10 +48,7 @@ export const registerUser = async (payload: RegisterPayload) => {
     },
   });
 
-  // OTP kích hoạt
-  const otp = generateOTP();
   await redis.set(`otp:activate:${email}`, otp, 'EX', 180);
-  await sendOTPEmail(email, otp);
 
   return {
     message: 'Tài khoản đã tạo, OTP kích hoạt đã gửi về email',
