@@ -27,7 +27,14 @@ const loginSchema = Joi.object({
 });
 
 const activateSchema = Joi.object({
-  email: Joi.string().email().required().trim(),
+  username: Joi.string().required().trim().messages({
+    'string.empty': 'Username không được để trống',
+    'any.required': 'Vui lòng nhập username',
+  }),
+  email: Joi.string().email().required().trim().messages({
+    'string.email': 'Email không hợp lệ',
+    'any.required': 'Vui lòng nhập email',
+  }),
   otp: Joi.string()
     .length(6)
     .pattern(/^[0-9]+$/)
