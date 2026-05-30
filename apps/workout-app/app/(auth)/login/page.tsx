@@ -1,36 +1,47 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.message); return }
-      localStorage.setItem('accessToken', data.accessToken)
-      localStorage.setItem('refreshToken', data.refreshToken)
-      router.push('/dashboard')
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        },
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.message === 'Tài khoản chưa được kích hoạt') {
+          sessionStorage.setItem('pendingUsername', form.email);
+          router.push('/activate');
+          return;
+        }
+        setError(data.message);
+        return;
+      }
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      router.push('/activate');
     } catch {
-      setError('Lỗi kết nối, vui lòng thử lại')
+      setError('Lỗi kết nối, vui lòng thử lại');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div
@@ -39,13 +50,7 @@ export default function LoginPage() {
     >
       {/* Pattern góc trên trái */}
       <div className="absolute top-0 left-0 pointer-events-none">
-        <Image
-          src="/patternL.svg"
-          alt=""
-          width={250}
-          height={300}
-          priority
-        />
+        <Image src="/patternL.svg" alt="" width={250} height={300} priority />
       </div>
 
       {/* Back button góc trên phải */}
@@ -56,24 +61,32 @@ export default function LoginPage() {
           style={{ backgroundColor: '#ff5c00' }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path
+              d="M15 18L9 12L15 6"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </button>
       </div>
 
       {/* Logo + Title */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 pt-24 pb-4"
-      style={{ paddingTop: '80px' }}>
-        <Image 
-          src="/Logo.png" 
-          alt="H4C Logo" 
-          width={160} 
-          height={160} 
-          className="mb-10" 
-          priority 
+      <div
+        className="flex-1 flex flex-col items-center justify-center px-8 pt-24 pb-4"
+        style={{ paddingTop: '80px' }}
+      >
+        <Image
+          src="/Logo.png"
+          alt="H4C Logo"
+          width={160}
+          height={160}
+          className="mb-10"
+          priority
         />
-        <h1 
-          className="text-3xl font-black text-center tracking-wide" 
+        <h1
+          className="text-3xl font-black text-center tracking-wide"
           style={{ color: '#d64b29' }}
         >
           Login
@@ -83,18 +96,21 @@ export default function LoginPage() {
       {/* Bottom card */}
       <div
         className="w-full px-8 flex flex-col"
-        style={{ 
-          backgroundColor: '#980422', 
-          borderRadius: '48px 48px 0 0', 
+        style={{
+          backgroundColor: '#980422',
+          borderRadius: '48px 48px 0 0',
           height: '450px',
           alignItems: 'center',
           justifyContent: 'center',
-          paddingBottom: '70px'
+          paddingBottom: '70px',
         }}
       >
         <form onSubmit={handleSubmit} className="flex flex-col gap-8">
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-black tracking-widest" style={{ color: '#ed9231' }}>
+            <label
+              className="text-sm font-black tracking-widest"
+              style={{ color: '#ed9231' }}
+            >
               USERNAME
             </label>
             <input
@@ -104,17 +120,21 @@ export default function LoginPage() {
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
               className="px-4 py-3 text-white placeholder-white/60 outline-none"
-              style={{ 
+              style={{
                 backgroundColor: '#7a0318',
-                border: '5px solid #ff5c00', 
+                border: '5px solid #ff5c00',
                 borderRadius: '10px',
                 height: '51px',
-                width: '250px' }}
+                width: '250px',
+              }}
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-black tracking-widest" style={{ color: '#ed9231' }}>
+            <label
+              className="text-sm font-black tracking-widest"
+              style={{ color: '#ed9231' }}
+            >
               PASSWORD
             </label>
             <input
@@ -124,17 +144,20 @@ export default function LoginPage() {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
               className="px-4 py-3 text-white placeholder-white/60 outline-none"
-              style={{ 
-                backgroundColor: '#7a0318', 
-                border: '5px solid #ff5c00', 
+              style={{
+                backgroundColor: '#7a0318',
+                border: '5px solid #ff5c00',
                 borderRadius: '10px',
                 height: '51px',
-                width: '250px' }}
+                width: '250px',
+              }}
             />
           </div>
 
           {error && (
-            <p className="text-sm text-center" style={{ color: '#ffb3a0' }}>{error}</p>
+            <p className="text-sm text-center" style={{ color: '#ffb3a0' }}>
+              {error}
+            </p>
           )}
 
           <button
@@ -155,5 +178,5 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
-  )
+  );
 }

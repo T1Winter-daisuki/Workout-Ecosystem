@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function WelcomePage() {
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <div
@@ -13,18 +13,14 @@ export default function WelcomePage() {
     >
       {/* Pattern góc trên trái */}
       <div className="absolute top-0 left-0 pointer-events-none">
-        <Image
-          src="/patternL.svg"
-          alt=""
-          width={250}
-          height={300}
-          priority
-        />
+        <Image src="/patternL.svg" alt="" width={250} height={300} priority />
       </div>
 
       {/* Content giữa */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 pt-24 pb-4"
-      style={{ height: 'calc(100svh - 340px)' }}>
+      <div
+        className="flex-1 flex flex-col items-center justify-center px-8 pt-24 pb-4"
+        style={{ height: 'calc(100svh - 340px)' }}
+      >
         <Image
           src="/Logo.png"
           alt="H4C Logo"
@@ -70,7 +66,7 @@ export default function WelcomePage() {
         >
           Login
         </button>
-        
+
         {/* Forgot */}
         <button
           onClick={() => router.push('/forgot-password')}
@@ -88,5 +84,5 @@ export default function WelcomePage() {
         </button>
       </div>
     </div>
-  )
+  );
 }

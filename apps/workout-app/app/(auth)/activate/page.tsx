@@ -1,124 +1,160 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function ActivatePage() {
-  const router = useRouter()
-  const [form, setForm] = useState({ email: '', otp: '', newPassword: '', confirmPassword: '' })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (form.newPassword !== form.confirmPassword) {
-      setError('Mật khẩu không khớp')
-      return
-    }
-
-    setLoading(true)
-
+    e.preventDefault();
+    setError('');
+    setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/activate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: form.email,
-          otp: form.otp,
-          newPassword: form.newPassword,
-        }),
-      })
-
-      const data = await res.json()
-
+      const username = sessionStorage.getItem('pendingUsername') || '';
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/request-activate-otp`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email }),
+        },
+      );
+      const data = await res.json();
       if (!res.ok) {
-        setError(data.message)
-        return
+        setError(data.message);
+        return;
       }
-
-      router.push('/login')
-    } catch (err) {
-      setError('Lỗi kết nối, vui lòng thử lại')
+      sessionStorage.setItem('pendingEmail', email);
+      sessionStorage.removeItem('pendingEmail');
+      router.push('/otp');
+    } catch {
+      setError('Lỗi kết nối, vui lòng thử lại');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Kích hoạt tài khoản</CardTitle>
-          <CardDescription>Nhập OTP đã được gửi về email và đặt mật khẩu mới</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Nhập email của bạn"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="otp">Mã OTP</Label>
-              <Input
-                id="otp"
-                type="text"
-                placeholder="Nhập mã OTP 6 số"
-                maxLength={6}
-                value={form.otp}
-                onChange={(e) => setForm({ ...form, otp: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">Mật khẩu mới</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                placeholder="Ít nhất 8 ký tự, có chữ hoa, số"
-                value={form.newPassword}
-                onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Nhập lại mật khẩu mới"
-                value={form.confirmPassword}
-                onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                required
-              />
-            </div>
-            {error && (
-              <p className="text-sm text-red-500 text-center">{error}</p>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Đang kích hoạt...' : 'Kích hoạt tài khoản'}
-            </Button>
-            <p
-              className="text-sm text-center text-gray-500 cursor-pointer hover:text-gray-700"
-              onClick={() => router.push('/login')}
+    <div
+      className="relative flex flex-col overflow-hidden bg-white"
+      style={{ minHeight: '100svh', maxWidth: '460px', margin: '0 auto' }}
+    >
+      {/* Pattern góc trên trái */}
+      <div className="absolute top-0 left-0 pointer-events-none">
+        <Image src="/patternL.svg" alt="" width={250} height={300} priority />
+      </div>
+
+      {/* Back button */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={() => router.push('/login')}
+          className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-200 hover:brightness-110 active:scale-95"
+          style={{ backgroundColor: '#ff5c00' }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M15 18L9 12L15 6"
+              stroke="white"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Logo + Title */}
+      <div
+        className="flex-1 flex flex-col items-center justify-center px-8"
+        style={{ paddingTop: '80px' }}
+      >
+        <Image
+          src="/Logo.png"
+          alt="H4C Logo"
+          width={160}
+          height={160}
+          className="mb-10"
+          priority
+        />
+        <h1
+          className="text-3xl font-black text-center tracking-wide"
+          style={{ color: '#d64b29' }}
+        >
+          Active
+        </h1>
+        <h1
+          className="text-3xl font-black text-center tracking-wide"
+          style={{ color: '#d64b29' }}
+        >
+          Account
+        </h1>
+      </div>
+
+      {/* Bottom card */}
+      <div
+        className="w-full px-8 flex flex-col"
+        style={{
+          backgroundColor: '#980422',
+          borderRadius: '48px 48px 0 0',
+          height: '450px',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingBottom: '70px',
+        }}
+      >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <label
+              className="text-sm font-black tracking-widest"
+              style={{ color: '#ed9231' }}
             >
-              Quay lại đăng nhập
+              EMAIL
+            </label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="px-4 py-3 text-white placeholder-white/60 outline-none"
+              style={{
+                backgroundColor: '#7a0318',
+                border: '5px solid #ff5c00',
+                borderRadius: '10px',
+                height: '51px',
+                width: '250px',
+              }}
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-center" style={{ color: '#ffb3a0' }}>
+              {error}
             </p>
-          </form>
-        </CardContent>
-      </Card>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="font-bold text-lg tracking-widest transition-all duration-200 hover:brightness-110 active:scale-95 mt-2"
+            style={{
+              backgroundColor: '#ff5c00',
+              color: '#ffffff',
+              width: '230px',
+              height: '51px',
+              borderRadius: '10px',
+              alignSelf: 'center',
+            }}
+          >
+            {loading ? '...' : 'GET OTP'}
+          </button>
+        </form>
+      </div>
     </div>
-  )
+  );
 }
