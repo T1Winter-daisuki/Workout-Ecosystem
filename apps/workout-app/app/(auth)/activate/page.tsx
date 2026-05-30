@@ -82,13 +82,13 @@ export default function ActivatePage() {
           priority
         />
         <h1
-          className="text-3xl font-black text-center tracking-wide"
+          className="text-5xl font-black text-center tracking-wide"
           style={{ color: '#d64b29' }}
         >
           Active
         </h1>
         <h1
-          className="text-3xl font-black text-center tracking-wide"
+          className="text-5xl font-black text-center tracking-wide"
           style={{ color: '#d64b29' }}
         >
           Account

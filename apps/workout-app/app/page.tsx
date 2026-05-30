@@ -30,13 +30,13 @@ export default function WelcomePage() {
           priority
         />
         <h1
-          className="text-3xl font-black text-center tracking-wide"
+          className="text-5xl font-black text-center tracking-wide"
           style={{ color: '#d64b29' }}
         >
           WELCOME TO
         </h1>
         <h1
-          className="text-4xl font-black text-center tracking-widest mt-1"
+          className="text-5xl font-black text-center tracking-widest mt-1"
           style={{ color: '#ed9231' }}
         >
           H4C
