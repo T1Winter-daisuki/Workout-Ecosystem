@@ -1,8 +1,11 @@
 import 'dotenv/config';
+import dns from 'node:dns';
 import express from 'express';
 import cors from 'cors';
 import authRouter from './2_auth/auth.routes';
 import { Request, Response } from 'express';
+
+dns.setDefaultResultOrder('ipv4first');
 
 const app = express();
 app.set('trust proxy', 1);
