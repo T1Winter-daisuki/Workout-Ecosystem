@@ -71,7 +71,7 @@ export const requestActivateOTP = async (username: string, email: string) => {
   await redis.set(`otp:activate:${username}`, otp, 'EX', 180);
   // sendOTPEmail(email, otp);
   try {
-    sendOTPEmail(email, otp)
+    await sendOTPEmail(email, otp)
   } catch (mailErr) {
     console.error('Mail error:', mailErr)
   }
