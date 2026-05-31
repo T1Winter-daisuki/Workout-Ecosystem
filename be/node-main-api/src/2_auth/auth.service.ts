@@ -69,7 +69,12 @@ export const requestActivateOTP = async (username: string, email: string) => {
 
   const otp = generateOTP();
   await redis.set(`otp:activate:${username}`, otp, 'EX', 180);
-  sendOTPEmail(email, otp);
+  // sendOTPEmail(email, otp);
+  try {
+    sendOTPEmail(email, otp)
+  } catch (mailErr) {
+    console.error('Mail error:', mailErr)
+  }
 
   return { message: 'OTP đã gửi về email' };
 };
