@@ -10,6 +10,10 @@ export function middleware(request: NextRequest) {
     if (!accessToken) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
+    const emailVerified = request.cookies.get('emailVerified')?.value
+    if (emailVerified === 'false') {
+      return NextResponse.redirect(new URL('/activate', request.url))
+    }
   }
 
   // Trang auth — đã login rồi thì không cho vào lại

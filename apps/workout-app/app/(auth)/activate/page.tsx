@@ -30,7 +30,6 @@ export default function ActivatePage() {
         return;
       }
       sessionStorage.setItem('pendingEmail', email);
-      sessionStorage.removeItem('pendingEmail');
       router.push('/otp');
     } catch {
       setError('Lỗi kết nối, vui lòng thử lại');

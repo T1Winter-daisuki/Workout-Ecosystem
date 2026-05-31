@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { setTokens } from '@/lib/auth';
-import Cookies from 'js-cookie'
+import Cookies from 'js-cookie';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) {
         if (data.message === 'Tài khoản chưa được kích hoạt') {
-          Cookies.set('pendingActivate', 'true', { expires: 1/24 });
+          Cookies.set('pendingActivate', 'true', { expires: 1 / 24 });
           sessionStorage.setItem('pendingUsername', form.email);
           router.push('/activate');
           return;
@@ -36,6 +36,8 @@ export default function LoginPage() {
         setError(data.message);
         return;
       }
+
+      Cookies.set('emailVerified', 'true');
       setTokens(data.accessToken, data.refreshToken);
       router.push('/dashboard');
     } catch {
