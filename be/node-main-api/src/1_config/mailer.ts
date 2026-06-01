@@ -9,17 +9,22 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendOTPEmail = async (to: string, otp: string) => {
-  await transporter.sendMail({
-    from: `"Ecosystem App" <${process.env.EMAIL_USER}>`,
-    to,
-    subject: 'Mã xác thực OTP của bạn',
-    html: `
-      <h2>Mã OTP của bạn</h2>
-      <p>Mã OTP có hiệu lực trong <strong>3 phút</strong>:</p>
-      <h1 style="letter-spacing: 8px; color: #da4040;">${otp}</h1>
-      <p>Nếu bạn không yêu cầu mã này, hãy bỏ qua email này.</p>
-    `,
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: `"H4C App" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: 'Mã xác thực OTP của H4C',
+      html: `
+        <h2>Mã OTP của bạn</h2>
+        <p>Mã OTP có hiệu lực trong <strong>3 phút</strong>:</p>
+        <h1 style="letter-spacing: 8px; color: #da4040;">${otp}</h1>
+        <p>Nếu bạn không yêu cầu mã này, hãy bỏ qua email này.</p>
+      `,
+    });
+    console.log('Email sent:', info.response);
+  } catch (error) {
+    console.error('Email error:', error);
+  }
 };
 
 export default transporter;
