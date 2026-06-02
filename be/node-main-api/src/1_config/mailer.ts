@@ -1,21 +1,21 @@
-export const sendOTPEmail = async (to: string, otp: string): Promise<boolean> => {
-
+export const sendOTPEmail = async (
+  to: string,
+  otp: string,
+): Promise<boolean> => {
   try {
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Content-Type': 'application/json',
         'api-key': process.env.BREVO_API_KEY as string,
       },
       body: JSON.stringify({
-        sender: { 
-          name: 'H4C App', 
-          email: process.env.BREVO_SENDER_EMAIL 
+        sender: {
+          name: 'H4C App',
+          email: process.env.BREVO_SENDER_EMAIL,
         },
-        to: [
-          { email: to }
-        ],
+        to: [{ email: to }],
         subject: 'Mã xác thực OTP của H4C',
         htmlContent: `
           <div style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
@@ -31,17 +31,12 @@ export const sendOTPEmail = async (to: string, otp: string): Promise<boolean> =>
     const responseData = await response.text();
 
     if (!response.ok) {
-      console.log('Mã API Key đang gửi đi có dạng:', process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.substring(0, 15) + '...' : 'TRỐNG RỖNG (UNDEFINED)!!!');
-      console.error('Brevo API vả lại lỗi HTTP:', response.status, responseData);
-      return false; 
+      return false;
     }
 
     const data = JSON.parse(responseData);
-    console.log('Email sent thành công! Message ID:', data.messageId);
-    return true; 
-
+    return true;
   } catch (err: any) {
-    console.error('Lỗi sập mạng khi Fetch API:', err.message || err);
-    return false; 
+    return false;
   }
 };
