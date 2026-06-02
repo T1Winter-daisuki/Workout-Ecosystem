@@ -31,7 +31,8 @@ export const sendOTPEmail = async (to: string, otp: string): Promise<boolean> =>
     const responseData = await response.text();
 
     if (!response.ok) {
-      console.error('❌ Brevo API vả lại lỗi HTTP:', response.status, responseData);
+      console.log('Mã API Key đang gửi đi có dạng:', process.env.BREVO_API_KEY ? process.env.BREVO_API_KEY.substring(0, 15) + '...' : 'TRỐNG RỖNG (UNDEFINED)!!!');
+      console.error('Brevo API vả lại lỗi HTTP:', response.status, responseData);
       return false; 
     }
 
