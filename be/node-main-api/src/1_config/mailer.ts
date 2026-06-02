@@ -22,8 +22,10 @@ export const sendOTPEmail = async (to: string, otp: string) => {
       `,
     });
     console.log('Email sent:', info.response);
+    return true;
   } catch (error) {
     console.error('Email error:', error);
+    return false;
   }
 };
 
