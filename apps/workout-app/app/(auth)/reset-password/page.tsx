@@ -27,7 +27,7 @@ export default function OTPPage() {
 
     setLoading(true);
     try {
-      const email = sessionStorage.getItem('pendingEmail') || '';
+      const email = sessionStorage.getItem('resetEmail') || '';
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/reset-password`,

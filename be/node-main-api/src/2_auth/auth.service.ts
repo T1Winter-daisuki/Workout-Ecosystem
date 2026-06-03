@@ -69,9 +69,9 @@ export const requestActivateOTP = async (username: string, email: string) => {
 
   const otp = generateOTP();
   await redis.set(`otp:activate:${username}`, otp, 'EX', 180);
-  console.log('Attempting to send email to:', email)
-  sendOTPEmail(email, otp)
-  console.log('sendOTPEmail called')
+  console.log('Attempting to send email to:', email);
+  sendOTPEmail(email, otp);
+  console.log('sendOTPEmail called');
 
   return { message: 'OTP đã gửi về email' };
 };
@@ -159,6 +159,15 @@ export const resetPassword = async (
   const stored = await redis.get(`otp:reset:${email}`);
   if (!stored || stored !== otp)
     throw new Error('OTP không hợp lệ hoặc đã hết hạn');
+
+  const user = await prisma.users.findUnique({ where: { email } });
+  if (!user) throw new Error('Tài khoản không tồn tại');
+
+  const isSame = await bcrypt.compare(
+    newPassword,
+    user.password_hash as string,
+  );
+  if (isSame) throw new Error('Mật khẩu mới phải khác mật khẩu hiện tại');
 
   const password_hash = await bcrypt.hash(newPassword, 10);
   await prisma.users.update({
