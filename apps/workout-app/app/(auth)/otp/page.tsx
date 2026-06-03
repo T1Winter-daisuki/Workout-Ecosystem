@@ -19,6 +19,7 @@ export default function OTPPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setResendMsg('');
 
     if (form.newPassword !== form.confirmPassword) {
       setError('Mật khẩu không khớp');
@@ -60,6 +61,8 @@ export default function OTPPage() {
   };
 
   const handleResend = async () => {
+    setError('');
+    setResendMsg('');
     try {
       const username = sessionStorage.getItem('pendingUsername') || '';
       const email = sessionStorage.getItem('pendingEmail') || '';
@@ -221,16 +224,15 @@ export default function OTPPage() {
             />
           </div>
 
-          {error && (
+          {error ? (
             <p className="text-sm text-center" style={{ color: '#ffb3a0' }}>
               {error}
             </p>
-          )}
-          {resendMsg && (
+          ) : resendMsg ? (
             <p className="text-sm text-center" style={{ color: '#86efac' }}>
               {resendMsg}
             </p>
-          )}
+          ) : null}
 
           {/* Resend OTP */}
           <button
