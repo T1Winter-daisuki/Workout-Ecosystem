@@ -27,7 +27,7 @@ export default function LoginPage() {
       );
       const data = await res.json();
       if (!res.ok) {
-        if (data.message === 'Tài khoản chưa được kích hoạt') {
+        if (data.message === 'Account has not been activated') {
           Cookies.set('pendingActivate', 'true', { expires: 1 / 24 });
           sessionStorage.setItem('pendingUsername', form.email);
           router.push('/activate');
@@ -41,7 +41,7 @@ export default function LoginPage() {
       setTokens(data.accessToken, data.refreshToken);
       router.push('/dashboard');
     } catch {
-      setError('Lỗi kết nối, vui lòng thử lại');
+      setError('Connection error, please try again');
     } finally {
       setLoading(false);
     }

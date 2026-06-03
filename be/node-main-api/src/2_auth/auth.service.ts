@@ -30,7 +30,7 @@ export const registerUser = async (payload: RegisterPayload) => {
   const existing = await prisma.users.findFirst({
     where: { username },
   });
-  if (existing) throw new Error('Email hoặc username đã tồn tại');
+  if (existing) throw new Error('Email or username already exists');
 
   const password_hash = await bcrypt.hash(temporaryPassword, 10);
 
@@ -50,7 +50,7 @@ export const registerUser = async (payload: RegisterPayload) => {
   await redis.set(`otp:activate:${username}`, otp, 'EX', 180);
 
   return {
-    message: 'Tài khoản đã tạo thành công',
+    message: 'Account created successfully',
     userId: user.id,
   };
 };
@@ -58,22 +58,20 @@ export const registerUser = async (payload: RegisterPayload) => {
 // nhập email để nhận OTP
 export const requestActivateOTP = async (username: string, email: string) => {
   const user = await prisma.users.findUnique({ where: { username } });
-  if (!user) throw new Error('Tài khoản không tồn tại');
-  if (user.email_verified) throw new Error('Tài khoản đã được kích hoạt');
+  if (!user) throw new Error('Account does not exist');
+  if (user.email_verified) throw new Error('Account has already been activated');
 
   // Kiểm tra email chưa được dùng bởi acc khác
   const emailExist = await prisma.users.findFirst({
     where: { email, NOT: { username } },
   });
-  if (emailExist) throw new Error('Email đã được sử dụng');
+  if (emailExist) throw new Error('Email is already in use');
 
   const otp = generateOTP();
   await redis.set(`otp:activate:${username}`, otp, 'EX', 180);
-  console.log('Attempting to send email to:', email);
   sendOTPEmail(email, otp);
-  console.log('sendOTPEmail called');
 
-  return { message: 'OTP đã gửi về email' };
+  return { message: 'OTP has been sent to your email' };
 };
 
 // Kích hoạt acc lần đầu
@@ -85,7 +83,7 @@ export const activateAccount = async (
 ) => {
   const stored = await redis.get(`otp:activate:${username}`);
   if (!stored || stored !== otp)
-    throw new Error('OTP không hợp lệ hoặc đã hết hạn');
+    throw new Error('Invalid or expired OTP');
 
   const password_hash = await bcrypt.hash(newPassword, 10);
 
@@ -95,7 +93,7 @@ export const activateAccount = async (
   });
 
   await redis.del(`otp:activate:${username}`);
-  return { message: 'Tài khoản đã kích hoạt thành công' };
+  return { message: 'Account activated successfully' };
 };
 
 // Login
@@ -107,11 +105,11 @@ export const loginUser = async (payload: LoginPayload) => {
       OR: [{ email }, { username: email }],
     },
   });
-  if (!user) throw new Error('Email không tồn tại');
-  if (!user.email_verified) throw new Error('Tài khoản chưa được kích hoạt');
+  if (!user) throw new Error('Email does not exist');
+  if (!user.email_verified) throw new Error('Account has not been activated');
 
   const valid = await bcrypt.compare(password, user.password_hash as string);
-  if (!valid) throw new Error('Mật khẩu không đúng');
+  if (!valid) throw new Error('Incorrect password');
 
   const jwtPayload: JwtPayload = {
     userId: user.id,
@@ -141,13 +139,13 @@ export const loginUser = async (payload: LoginPayload) => {
 // Quên pass
 export const forgotPassword = async (email: string) => {
   const user = await prisma.users.findUnique({ where: { email } });
-  if (!user) throw new Error('Email không tồn tại');
+  if (!user) throw new Error('Email does not exist');
 
   const otp = generateOTP();
   await redis.set(`otp:reset:${email}`, otp, 'EX', 180);
   sendOTPEmail(email, otp);
 
-  return { message: 'OTP đặt lại mật khẩu đã gửi về email' };
+  return { message: 'Password reset OTP has been sent to your email' };
 };
 
 // Reset Pass
@@ -158,16 +156,16 @@ export const resetPassword = async (
 ) => {
   const stored = await redis.get(`otp:reset:${email}`);
   if (!stored || stored !== otp)
-    throw new Error('OTP không hợp lệ hoặc đã hết hạn');
+    throw new Error('Invalid or expired OTP');
 
   const user = await prisma.users.findUnique({ where: { email } });
-  if (!user) throw new Error('Tài khoản không tồn tại');
+  if (!user) throw new Error('Account does not exist');
 
   const isSame = await bcrypt.compare(
     newPassword,
     user.password_hash as string,
   );
-  if (isSame) throw new Error('Mật khẩu mới phải khác mật khẩu hiện tại');
+  if (isSame) throw new Error('New password must be different from the current one');
 
   const password_hash = await bcrypt.hash(newPassword, 10);
   await prisma.users.update({
@@ -176,7 +174,7 @@ export const resetPassword = async (
   });
 
   await redis.del(`otp:reset:${email}`);
-  return { message: 'Đặt lại mật khẩu thành công' };
+  return { message: 'Password reset successfully' };
 };
 
 export const resendOTP = async (
@@ -187,21 +185,21 @@ export const resendOTP = async (
     const user = await prisma.users.findUnique({
       where: { username: identifier },
     });
-    if (!user) throw new Error('Tài khoản không tồn tại');
-    if (user.email_verified) throw new Error('Tài khoản đã được kích hoạt rồi');
+    if (!user) throw new Error('Account does not exist');
+    if (user.email_verified) throw new Error('Account has already been activated');
 
     const otp = generateOTP();
     await redis.set(`otp:activate:${identifier}`, otp, 'EX', 180);
-    return { message: 'OTP mới đã được tạo' };
+    return { message: 'New OTP has been generated' };
   }
 
   const user = await prisma.users.findUnique({ where: { email: identifier } });
-  if (!user) throw new Error('Email không tồn tại');
+  if (!user) throw new Error('Email does not exist');
 
   const otp = generateOTP();
   await redis.set(`otp:reset:${identifier}`, otp, 'EX', 180);
   sendOTPEmail(identifier, otp);
-  return { message: 'OTP mới đã được gửi về email' };
+  return { message: 'New OTP has been sent to your email' };
 };
 
 // Cấp accessTok
@@ -211,7 +209,7 @@ export const refreshAccessToken = async (refreshToken: string) => {
     include: { users: true },
   });
   if (!session || session.expires_at < new Date())
-    throw new Error('Refresh token không hợp lệ');
+    throw new Error('Invalid refresh token');
 
   const payload: JwtPayload = {
     userId: session.users.id,
@@ -226,5 +224,5 @@ export const refreshAccessToken = async (refreshToken: string) => {
 // Log out
 export const logoutUser = async (refreshToken: string) => {
   await prisma.sessions.delete({ where: { refresh_token: refreshToken } });
-  return { message: 'Đăng xuất thành công' };
+  return { message: 'Logged out successfully' };
 };

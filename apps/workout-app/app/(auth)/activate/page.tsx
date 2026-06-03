@@ -32,7 +32,7 @@ export default function ActivatePage() {
       sessionStorage.setItem('pendingEmail', email);
       router.push('/otp');
     } catch {
-      setError('Lỗi kết nối, vui lòng thử lại');
+      setError('Connection error, please try again');
     } finally {
       setLoading(false);
     }
