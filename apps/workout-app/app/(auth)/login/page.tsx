@@ -109,7 +109,7 @@ export default function LoginPage() {
           paddingBottom: '70px',
         }}
       >
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+        <form onSubmit={handleSubmit} className="flex flex-col" style={{ gap: '16px' }}>
           <div className="flex flex-col gap-2">
             <label
               className="text-sm font-black tracking-widest"
@@ -163,6 +163,16 @@ export default function LoginPage() {
               {error}
             </p>
           )}
+
+          {/* Forgot Password */}
+          <button
+            type="button"
+            onClick={() => router.push('/forgot-password')}
+            className="text-sm underline text-left transition-opacity hover:opacity-70"
+            style={{ color: '#ffffff', width: '250px' }}
+          >
+            Forgot Password?
+          </button>
 
           <button
             type="submit"
