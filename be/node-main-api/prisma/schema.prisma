@@ -333,7 +333,7 @@ model user_oauth {
 
 model users {
   id                        String                      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email                     String                      @unique
+  email                     String?                     @unique
   username                  String                      @unique
   password_hash             String?
   role                      String                      @default("user")

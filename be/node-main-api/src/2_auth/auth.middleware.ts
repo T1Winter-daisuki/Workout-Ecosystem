@@ -1,129 +1,50 @@
 import Joi from 'joi';
-import escape from 'escape-html';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { JwtPayload } from './auth.model';
+import {
+  registerSchema,
+  loginSchema,
+  requestActivateOtpSchema,
+  activateSchema,
+  resetPasswordSchema,
+  forgotPasswordSchema,
+  resendOtpSchema,
+  refreshTokenSchema,
+  logoutSchema,
+} from './auth.dto';
 
 // Extend Request để gắn user vào
 export interface AuthRequest extends Request {
   user?: JwtPayload;
 }
 
-// Schema
-const loginSchema = Joi.object({
-  email: Joi.string()
-    .custom((v) => escape(v))
-    .required()
-    .trim()
-    .messages({
-      'string.empty': 'Tài khoản không được để trống',
-      'any.required': 'Vui lòng nhập tài khoản',
-    }),
-  password: Joi.string().required().messages({
-    'string.empty': 'Mật khẩu không được để trống',
-    'any.required': 'Vui lòng nhập mật khẩu',
-  }),
-});
+const validate =
+  (schema: Joi.Schema) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    const { error, value } = schema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: error.details.map((d) => d.message).join(', ') });
+    }
+    req.body = value;
+    next();
+  };
 
-const activateSchema = Joi.object({
-  username: Joi.string().required().trim().messages({
-    'string.empty': 'Username không được để trống',
-    'any.required': 'Vui lòng nhập username',
-  }),
-  email: Joi.string().email().required().trim().messages({
-    'string.email': 'Email không hợp lệ',
-    'any.required': 'Vui lòng nhập email',
-  }),
-  otp: Joi.string()
-    .length(6)
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      'string.length': 'OTP phải đúng 6 số',
-      'string.pattern.base': 'OTP chỉ được chứa số',
-      'any.required': 'Vui lòng nhập OTP',
-    }),
-  newPassword: Joi.string()
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$'))
-    .min(8)
-    .required()
-    .messages({
-      'string.min': 'Mật khẩu phải có ít nhất 8 ký tự',
-      'string.pattern.base': 'Mật khẩu phải có chữ hoa, chữ thường và số',
-      'any.required': 'Vui lòng nhập mật khẩu mới',
-    }),
-});
-
-const resetPasswordSchema = Joi.object({
-  email: Joi.string().email().required().trim(),
-  otp: Joi.string()
-    .length(6)
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      'string.length': 'OTP phải đúng 6 số',
-      'string.pattern.base': 'OTP chỉ được chứa số',
-      'any.required': 'Vui lòng nhập OTP',
-    }),
-  newPassword: Joi.string()
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$'))
-    .min(8)
-    .required()
-    .messages({
-      'string.min': 'Mật khẩu phải có ít nhất 8 ký tự',
-      'string.pattern.base': 'Mật khẩu phải có chữ hoa, chữ thường và số',
-      'any.required': 'Vui lòng nhập mật khẩu mới',
-    }),
-});
-
-export const validLogin = (req: Request, res: Response, next: NextFunction) => {
-  const { error, value } = loginSchema.validate(req.body, {
-    abortEarly: false,
-  });
-  if (error) {
-    return res
-      .status(400)
-      .json({ message: error.details.map((d) => d.message).join(', ') });
-  }
-  req.body = value;
-  next();
-};
-
-export const validActivate = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { error, value } = activateSchema.validate(req.body, {
-    abortEarly: false,
-  });
-  if (error) {
-    return res
-      .status(400)
-      .json({ message: error.details.map((d) => d.message).join(', ') });
-  }
-  req.body = value;
-  next();
-};
-
-export const validResetPassword = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { error, value } = resetPasswordSchema.validate(req.body, {
-    abortEarly: false,
-    stripUnknown: true,
-  });
-  if (error) {
-    return res
-      .status(400)
-      .json({ message: error.details.map((d) => d.message).join(', ') });
-  }
-  req.body = value;
-  next();
-};
+export const validRegister = validate(registerSchema);
+export const validLogin = validate(loginSchema);
+export const validRequestActivateOtp = validate(requestActivateOtpSchema);
+export const validActivate = validate(activateSchema);
+export const validResetPassword = validate(resetPasswordSchema);
+export const validForgotPassword = validate(forgotPasswordSchema);
+export const validResendOtp = validate(resendOtpSchema);
+export const validRefreshToken = validate(refreshTokenSchema);
+export const validLogout = validate(logoutSchema);
 
 // Chống DDoS cơ bản
 export const loginRateLimit = rateLimit({

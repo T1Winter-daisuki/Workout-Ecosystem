@@ -1,9 +1,15 @@
 import { Router } from 'express';
 import * as authController from './auth.controller';
 import {
+  validRegister,
   validLogin,
+  validRequestActivateOtp,
   validActivate,
   validResetPassword,
+  validForgotPassword,
+  validResendOtp,
+  validRefreshToken,
+  validLogout,
   loginRateLimit,
   otpRateLimit,
   verifyToken,
@@ -12,10 +18,15 @@ import {
 const router = Router();
 
 // Admin tạo tài khoản
-router.post('/register', authController.register);
+router.post('/register', validRegister, authController.register);
 
 // User nhập email để nhận OTP kích hoạt
-router.post('/request-activate-otp', otpRateLimit, authController.requestActivateOTP)
+router.post(
+  '/request-activate-otp',
+  otpRateLimit,
+  validRequestActivateOtp,
+  authController.requestActivateOTP,
+);
 
 // Kích hoạt tài khoản lần đầu
 router.post('/activate', validActivate, authController.activateAccount);
@@ -24,7 +35,12 @@ router.post('/activate', validActivate, authController.activateAccount);
 router.post('/login', loginRateLimit, validLogin, authController.login);
 
 // Quên mật khẩu
-router.post('/forgot-password', otpRateLimit, authController.forgotPassword);
+router.post(
+  '/forgot-password',
+  otpRateLimit,
+  validForgotPassword,
+  authController.forgotPassword,
+);
 
 // Đặt lại mật khẩu
 router.post(
@@ -34,13 +50,18 @@ router.post(
 );
 
 // Gửi lại OTP
-router.post('/resend-otp', otpRateLimit, authController.resendOTP);
+router.post(
+  '/resend-otp',
+  otpRateLimit,
+  validResendOtp,
+  authController.resendOTP,
+);
 
 // Refresh token
-router.post('/refresh-token', authController.refreshToken);
+router.post('/refresh-token', validRefreshToken, authController.refreshToken);
 
 // Đăng xuất
-router.post('/logout', authController.logout);
+router.post('/logout', validLogout, authController.logout);
 
 // Lấy thông tin user đang đăng nhập (cần token)
 router.get('/me', verifyToken, authController.getMe);
