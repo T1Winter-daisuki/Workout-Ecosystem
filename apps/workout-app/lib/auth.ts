@@ -5,6 +5,10 @@ export const setTokens = (accessToken: string, refreshToken: string) => {
   localStorage.setItem('refreshToken', refreshToken)
 }
 
+export const setAccessToken = (accessToken: string) => {
+  Cookies.set('accessToken', accessToken, { expires: 1/96 }) // 15 phút
+}
+
 export const getAccessToken = () => Cookies.get('accessToken')
 export const getRefreshToken = () => localStorage.getItem('refreshToken')
 

@@ -2,24 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { AuthBackground } from '@/components/auth/AuthBackground';
+import { AuthCard } from '@/components/auth/AuthCard';
 
 export default function WelcomePage() {
   const router = useRouter();
 
   return (
-    <div
-      className="relative flex flex-col overflow-hidden bg-white"
-      style={{ minHeight: '100svh', maxWidth: '460px', margin: '0 auto' }}
-    >
-      {/* Pattern góc trên trái */}
-      <div className="absolute top-0 left-0 pointer-events-none">
-        <Image src="/patternL.svg" alt="" width={250} height={300} priority />
-      </div>
-
+    <AuthBackground>
       {/* Content giữa */}
       <div
-        className="flex-1 flex flex-col items-center justify-center px-8 pt-24 pb-4"
-        style={{ height: 'calc(100svh - 340px)' }}
+        className="flex-1 flex flex-col items-center px-8 pb-4 animate-in fade-in slide-in-from-top-4 duration-500 ease-out"
+        style={{ paddingTop: '160px' }}
       >
         <Image
           src="/Logo.png"
@@ -43,15 +37,7 @@ export default function WelcomePage() {
         </h1>
       </div>
 
-      {/* Bottom card */}
-      <div
-        className="w-full flex flex-col items-center justify-center gap-5"
-        style={{
-          backgroundColor: '#980422',
-          borderRadius: '48px 48px 0 0',
-          height: '328px',
-        }}
-      >
+      <AuthCard height="328px" className="gap-5">
         {/* Login */}
         <button
           onClick={() => router.push('/login')}
@@ -82,7 +68,7 @@ export default function WelcomePage() {
         >
           Forgot Password?
         </button>
-      </div>
-    </div>
+      </AuthCard>
+    </AuthBackground>
   );
 }
