@@ -48,7 +48,7 @@ export default function LoginPage() {
       setTokens(data.accessToken, data.refreshToken);
       router.push('/dashboard');
     } catch {
-      setError('Lỗi kết nối, vui lòng thử lại');
+      setError('Connection error, please try again');
     } finally {
       setLoading(false);
     }

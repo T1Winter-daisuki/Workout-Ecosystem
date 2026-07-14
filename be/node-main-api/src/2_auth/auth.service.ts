@@ -53,7 +53,7 @@ export const registerUser = async (payload: RegisterPayload) => {
   });
 
   return {
-    message: 'Tài khoản đã tạo thành công',
+    message: 'Account created successfully',
     userId: user.id,
   };
 };
@@ -79,7 +79,7 @@ export const requestActivateOTP = async (username: string, email: string, tempor
   const sent = await sendOTPEmail(email, otp);
   if (!sent) throw new InternalError('Gửi email thất bại, vui lòng thử lại sau');
 
-  return { message: 'OTP đã gửi về email' };
+  return { message: 'OTP has been sent to your email' };
 };
 
 // Kích hoạt acc lần đầu
@@ -101,7 +101,7 @@ export const activateAccount = async (
   });
 
   await redis.del(`otp:activate:${username}`);
-  return { message: 'Tài khoản đã kích hoạt thành công' };
+  return { message: 'Account activated successfully' };
 };
 
 // Login
@@ -189,7 +189,7 @@ export const resetPassword = async (
   });
 
   await redis.del(`otp:reset:${email}`);
-  return { message: 'Đặt lại mật khẩu thành công' };
+  return { message: 'Password reset successfully' };
 };
 
 export const resendOTP = async (
@@ -252,5 +252,5 @@ export const refreshAccessToken = async (refreshToken: string) => {
 // Log out
 export const logoutUser = async (refreshToken: string) => {
   await prisma.sessions.delete({ where: { refresh_token: refreshToken } });
-  return { message: 'Đăng xuất thành công' };
+  return { message: 'Logged out successfully' };
 };

@@ -19,10 +19,10 @@ export const sendOTPEmail = async (
         subject: 'Mã xác thực OTP của H4C',
         htmlContent: `
           <div style="font-family: Arial, sans-serif; padding: 20px; text-align: center;">
-            <h2>Mã OTP của bạn</h2>
-            <p>Có hiệu lực trong <strong>3 phút</strong>:</p>
+            <h2>Your OTP Code</h2>
+            <p>Valid for <strong>3 minutes</strong>:</p>
             <h1 style="letter-spacing: 8px; color: #d64b29;">${otp}</h1>
-            <p>Nếu bạn không yêu cầu mã này, hãy bỏ qua email này.</p>
+            <p>If you did not request this code, please ignore this email.</p>
           </div>
         `,
       }),

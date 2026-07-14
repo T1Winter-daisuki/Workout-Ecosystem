@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
       sessionStorage.setItem('resetEmail', email);
       router.push('/reset-password');
     } catch {
-      setError('Lỗi kết nối, vui lòng thử lại');
+      setError('Connection error, please try again');
     } finally {
       setLoading(false);
     }

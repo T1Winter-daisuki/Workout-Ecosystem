@@ -38,7 +38,7 @@ export default function RegisterPage() {
       setSuccess('Tạo tài khoản thành công!');
       setForm({ username: '', temporaryPassword: '' });
     } catch {
-      setError('Lỗi kết nối, vui lòng thử lại');
+      setError('Connection error, please try again');
     } finally {
       setLoading(false);
     }

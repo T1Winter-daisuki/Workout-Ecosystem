@@ -50,7 +50,7 @@ export const validLogout = validate(logoutSchema);
 export const loginRateLimit = rateLimit({
   windowMs: 30 * 1000,
   max: 5,
-  message: { message: 'Quá nhiều yêu cầu, thử lại sau 30 giây' },
+  message: { message: 'Too many requests, please try again after 30 seconds' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -58,7 +58,7 @@ export const loginRateLimit = rateLimit({
 export const otpRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
-  message: { message: 'Quá nhiều yêu cầu OTP, thử lại sau 1 giờ' },
+  message: { message: 'Too many OTP requests, please try again after 1 hour' },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -75,14 +75,14 @@ export const verifyToken = (
   if (!token) {
     return res
       .status(401)
-      .json({ message: 'Hãy đăng nhập để sử dụng tính năng này' });
+      .json({ message: 'Please log in to use this feature' });
   }
 
   jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
     if (err) {
       return res
         .status(403)
-        .json({ message: 'Token không hợp lệ hoặc đã hết hạn' });
+        .json({ message: 'Token is invalid or has expired' });
     }
     req.user = decoded as JwtPayload;
     next();

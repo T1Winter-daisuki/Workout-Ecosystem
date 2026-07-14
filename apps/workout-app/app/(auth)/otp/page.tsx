@@ -26,9 +26,10 @@ export default function OTPPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setResendMsg('');
 
     if (form.newPassword !== form.confirmPassword) {
-      setError('Mật khẩu không khớp');
+      setError('Passwords do not match');
       return;
     }
 
@@ -61,13 +62,15 @@ export default function OTPPage() {
       sessionStorage.removeItem('pendingTempPassword');
       router.push('/login');
     } catch {
-      setError('Lỗi kết nối, vui lòng thử lại');
+      setError('Connection error, please try again');
     } finally {
       setLoading(false);
     }
   };
 
   const handleResend = async () => {
+    setError('');
+    setResendMsg('');
     try {
       const username = sessionStorage.getItem('pendingUsername') || '';
       const email = sessionStorage.getItem('pendingEmail') || '';
@@ -85,9 +88,9 @@ export default function OTPPage() {
         setError(data.message);
         return;
       }
-      setResendMsg('OTP mới đã được gửi về email');
+      setResendMsg('A new OTP has been sent to your email');
     } catch {
-      setError('Lỗi kết nối, vui lòng thử lại');
+      setError('Connection error, please try again');
     }
   };
 
