@@ -13,8 +13,3 @@ export interface JwtPayload {
   email: string;
   role: string;
 }
-
-export interface OTPPayload {
-  email: string;
-  otp: string;
-}

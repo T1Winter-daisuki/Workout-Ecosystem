@@ -1,129 +1,50 @@
 import Joi from 'joi';
-import escape from 'escape-html';
 import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { JwtPayload } from './auth.model';
+import {
+  registerSchema,
+  loginSchema,
+  requestActivateOtpSchema,
+  activateSchema,
+  resetPasswordSchema,
+  forgotPasswordSchema,
+  resendOtpSchema,
+  refreshTokenSchema,
+  logoutSchema,
+} from './auth.dto';
 
 // Extend Request để gắn user vào
 export interface AuthRequest extends Request {
   user?: JwtPayload;
 }
 
-// Schema
-const loginSchema = Joi.object({
-  email: Joi.string()
-    .custom((v) => escape(v))
-    .required()
-    .trim()
-    .messages({
-      'string.empty': 'Account cannot be empty',
-      'any.required': 'Please enter your account',
-    }),
-  password: Joi.string().required().messages({
-    'string.empty': 'Password cannot be empty',
-    'any.required': 'Please enter your password',
-  }),
-});
+const validate =
+  (schema: Joi.Schema) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    const { error, value } = schema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+    if (error) {
+      return res
+        .status(400)
+        .json({ message: error.details.map((d) => d.message).join(', ') });
+    }
+    req.body = value;
+    next();
+  };
 
-const activateSchema = Joi.object({
-  username: Joi.string().required().trim().messages({
-    'string.empty': 'Username cannot be empty',
-    'any.required': 'Please enter your username',
-  }),
-  email: Joi.string().email().required().trim().messages({
-    'string.email': 'Invalid email format',
-    'any.required': 'Please enter your email',
-  }),
-  otp: Joi.string()
-    .length(6)
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      'string.length': 'OTP must be exactly 6 digits',
-      'string.pattern.base': 'OTP must contain only numbers',
-      'any.required': 'Please enter the OTP',
-    }),
-  newPassword: Joi.string()
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$'))
-    .min(8)
-    .required()
-    .messages({
-      'string.min': 'Password must be at least 8 characters long',
-      'string.pattern.base': 'Password must contain uppercase, lowercase, and numbers',
-      'any.required': 'Please enter a new password',
-    }),
-});
-
-const resetPasswordSchema = Joi.object({
-  email: Joi.string().email().required().trim(),
-  otp: Joi.string()
-    .length(6)
-    .pattern(/^[0-9]+$/)
-    .required()
-    .messages({
-      'string.length': 'OTP must be exactly 6 digits',
-      'string.pattern.base': 'OTP must contain only numbers',
-      'any.required': 'Please enter the OTP',
-    }),
-  newPassword: Joi.string()
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$'))
-    .min(8)
-    .required()
-    .messages({
-      'string.min': 'Password must be at least 8 characters long',
-      'string.pattern.base': 'Password must contain uppercase, lowercase, and numbers',
-      'any.required': 'Please enter a new password',
-    }),
-});
-
-export const validLogin = (req: Request, res: Response, next: NextFunction) => {
-  const { error, value } = loginSchema.validate(req.body, {
-    abortEarly: false,
-  });
-  if (error) {
-    return res
-      .status(400)
-      .json({ message: error.details.map((d) => d.message).join('. ') });
-  }
-  req.body = value;
-  next();
-};
-
-export const validActivate = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { error, value } = activateSchema.validate(req.body, {
-    abortEarly: false,
-  });
-  if (error) {
-    return res
-      .status(400)
-      .json({ message: error.details.map((d) => d.message).join('. ') });
-  }
-  req.body = value;
-  next();
-};
-
-export const validResetPassword = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const { error, value } = resetPasswordSchema.validate(req.body, {
-    abortEarly: false,
-    stripUnknown: true,
-  });
-  if (error) {
-    return res
-      .status(400)
-      .json({ message: error.details.map((d) => d.message).join('. ') });
-  }
-  req.body = value;
-  next();
-};
+export const validRegister = validate(registerSchema);
+export const validLogin = validate(loginSchema);
+export const validRequestActivateOtp = validate(requestActivateOtpSchema);
+export const validActivate = validate(activateSchema);
+export const validResetPassword = validate(resetPasswordSchema);
+export const validForgotPassword = validate(forgotPasswordSchema);
+export const validResendOtp = validate(resendOtpSchema);
+export const validRefreshToken = validate(refreshTokenSchema);
+export const validLogout = validate(logoutSchema);
 
 // Chống DDoS cơ bản
 export const loginRateLimit = rateLimit({

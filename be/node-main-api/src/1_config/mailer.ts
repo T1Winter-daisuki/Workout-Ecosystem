@@ -28,13 +28,10 @@ export const sendOTPEmail = async (
       }),
     });
 
-    const responseData = await response.text();
-
     if (!response.ok) {
       return false;
     }
 
-    const data = JSON.parse(responseData);
     return true;
   } catch (err: any) {
     return false;
