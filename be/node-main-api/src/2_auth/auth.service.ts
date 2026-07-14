@@ -59,10 +59,13 @@ export const registerUser = async (payload: RegisterPayload) => {
 };
 
 // nhập email để nhận OTP
-export const requestActivateOTP = async (username: string, email: string) => {
+export const requestActivateOTP = async (username: string, email: string, temporaryPassword: string) => {
   const user = await prisma.users.findUnique({ where: { username } });
   if (!user) throw new NotFoundError('Tài khoản không tồn tại');
   if (user.email_verified) throw new ConflictError('Tài khoản đã được kích hoạt');
+
+  const valid = await bcrypt.compare(temporaryPassword, user.password_hash as string);
+  if (!valid) throw new UnauthorizedError('Mật khẩu không đúng');
 
   // Kiểm tra email chưa được dùng bởi acc khác
   const emailExist = await prisma.users.findFirst({
@@ -111,10 +114,11 @@ export const loginUser = async (payload: LoginPayload) => {
     },
   });
   if (!user) throw new NotFoundError('Email không tồn tại');
-  if (!user.email_verified) throw new ForbiddenError('Tài khoản chưa được kích hoạt');
 
   const valid = await bcrypt.compare(password, user.password_hash as string);
   if (!valid) throw new UnauthorizedError('Mật khẩu không đúng');
+
+  if (!user.email_verified) throw new ForbiddenError('Tài khoản chưa được kích hoạt');
 
   const jwtPayload: JwtPayload = {
     userId: user.id,
@@ -192,6 +196,7 @@ export const resendOTP = async (
   identifier: string,
   type: 'activate' | 'reset',
   email?: string,
+  temporaryPassword?: string,
 ) => {
   const genericMessage = { message: 'OTP mới đã được gửi' };
 
@@ -200,6 +205,9 @@ export const resendOTP = async (
       where: { username: identifier },
     });
     if (!user || user.email_verified) return genericMessage;
+
+    const valid = await bcrypt.compare(temporaryPassword || '', user.password_hash as string);
+    if (!valid) return genericMessage;
 
     const otp = generateOTP();
     await redis.set(`otp:activate:${identifier}`, otp, 'EX', 180);

@@ -43,6 +43,10 @@ export const requestActivateOtpSchema = Joi.object({
     'string.email': 'Email không hợp lệ',
     'any.required': 'Vui lòng nhập email',
   }),
+  temporaryPassword: Joi.string().required().messages({
+    'string.empty': 'Mật khẩu không được để trống',
+    'any.required': 'Vui lòng nhập mật khẩu',
+  }),
 });
 
 export const activateSchema = Joi.object({
@@ -123,7 +127,17 @@ export const resendOtpSchema = Joi.object({
     .messages({
       'string.email': 'Email không hợp lệ',
       'any.required': 'Vui lòng nhập email để nhận OTP kích hoạt',
-    }),
+  }),
+  temporaryPassword: Joi.string()
+    .when('type', {
+      is: 'activate',
+      then: Joi.required(),
+      otherwise: Joi.optional(),
+    })
+    .messages({
+      'string.empty': 'Vui lòng nhập mật khẩu',
+      'any.required': 'Vui lòng nhập mật khẩu',
+  }),
 });
 
 export const refreshTokenSchema = Joi.object({

@@ -13,8 +13,8 @@ export const register = async (req: Request, res: Response) => {
 
 export const requestActivateOTP = async (req: Request, res: Response) => {
   try {
-    const { username, email } = req.body
-    const result = await authService.requestActivateOTP(username, email)
+    const { username, email, temporaryPassword } = req.body
+    const result = await authService.requestActivateOTP(username, email, temporaryPassword)
     res.status(200).json(result)
   } catch (error: any) {
     res.status(error.statusCode || 400).json({ message: error.message })
@@ -62,8 +62,8 @@ export const resetPassword = async (req: Request, res: Response) => {
 
 export const resendOTP = async (req: Request, res: Response) => {
   try {
-    const { identifier, type, email } = req.body;
-    const result = await authService.resendOTP(identifier, type, email);
+    const { identifier, type, email, temporaryPassword } = req.body;
+    const result = await authService.resendOTP(identifier, type, email, temporaryPassword);
     res.status(200).json(result);
   } catch (error: any) {
     res.status(error.statusCode || 400).json({ message: error.message });
