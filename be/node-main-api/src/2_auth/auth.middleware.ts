@@ -88,3 +88,15 @@ export const verifyToken = (
     next();
   });
 };
+
+// Chỉ cho phép role admin
+export const requireAdmin = (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ message: 'Bạn không có quyền truy cập chức năng này' });
+  }
+  next();
+};

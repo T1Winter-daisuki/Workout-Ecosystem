@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('accessToken')?.value;
 
   // Trang cần đăng nhập
-  if (pathname.startsWith('/dashboard')) {
+  if (pathname.startsWith('/home')) {
     if (!accessToken) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
@@ -16,10 +16,24 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Trang admin — cần đăng nhập + role admin
+  if (pathname.startsWith('/admin')) {
+    if (!accessToken) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+    const role = request.cookies.get('role')?.value;
+    if (role !== 'admin') {
+      return NextResponse.redirect(new URL('/home', request.url));
+    }
+  }
+
   // Trang auth — đã login rồi thì không cho vào lại
   if (pathname === '/login' || pathname === '/') {
     if (accessToken) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      const role = request.cookies.get('role')?.value;
+      return NextResponse.redirect(
+        new URL(role === 'admin' ? '/admin' : '/home', request.url),
+      );
     }
   }
 
@@ -43,5 +57,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/login', '/activate', '/otp', '/dashboard/:path*'],
+  matcher: ['/', '/login', '/activate', '/otp', '/home/:path*', '/admin/:path*'],
 };

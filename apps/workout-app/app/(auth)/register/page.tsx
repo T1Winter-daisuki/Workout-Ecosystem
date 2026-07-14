@@ -46,7 +46,7 @@ export default function RegisterPage() {
 
   return (
     <AuthBackground>
-      <BackButton onClick={() => router.push('/')} />
+      <BackButton onClick={() => router.push('/admin')} />
       <AuthHeader lines={['Create', 'Account']} />
 
       <AuthCard height="400px" paddingBottom="40px">

@@ -13,12 +13,19 @@ import {
   loginRateLimit,
   otpRateLimit,
   verifyToken,
+  requireAdmin,
 } from './auth.middleware';
 
 const router = Router();
 
-// Admin tạo tài khoản
-router.post('/register', validRegister, authController.register);
+// Admin tạo tài khoản — cần đăng nhập + role admin
+router.post(
+  '/register',
+  verifyToken,
+  requireAdmin,
+  validRegister,
+  authController.register,
+);
 
 // User nhập email để nhận OTP kích hoạt
 router.post(

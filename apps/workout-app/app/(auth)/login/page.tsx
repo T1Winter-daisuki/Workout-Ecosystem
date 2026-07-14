@@ -45,8 +45,9 @@ export default function LoginPage() {
       }
 
       Cookies.set('emailVerified', 'true');
+      Cookies.set('role', data.role);
       setTokens(data.accessToken, data.refreshToken);
-      router.push('/dashboard');
+      router.push(data.role === 'admin' ? '/admin' : '/home');
     } catch {
       setError('Connection error, please try again');
     } finally {

@@ -70,6 +70,7 @@ export default function AdminPage() {
           {adminMenu.map((item) => (
             <div key={item.id} className="flex flex-col items-center gap-3">
               <button
+                onClick={() => item.id === 'create' && router.push('/register')}
                 className="w-[125px] h-[125px] bg-white border-[4px] rounded-[16px] flex items-center justify-center shadow-md active:scale-95"
                 style={{ borderColor: '#980422' }}
               >
