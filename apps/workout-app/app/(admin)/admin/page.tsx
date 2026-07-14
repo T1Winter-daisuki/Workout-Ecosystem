@@ -1,18 +1,32 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { getRefreshToken, clearTokens } from '@/lib/auth';
 
 const adminMenu = [
-  { id: 'create', label: 'Create\naccount', icon: '/create.svg' },
-  { id: 'home', label: 'Home', icon: '/home.svg' },
-  { id: 'settings', label: 'Settings', icon: '/settings.svg' },
-  { id: 'profile', label: 'Profile', icon: '/profile.svg' },
-  { id: 'inbox', label: 'Inbox', icon: '/inbox.svg' },
-  { id: 'ranking', label: 'Ranking', icon: '/ranking.svg' },
+  { id: 'create', label: 'Create\naccount', icon: '/create.svg', href: '/register' },
+  { id: 'home', label: 'Home', icon: '/home.svg', href: '/home' },
+  { id: 'settings', label: 'Settings', icon: '/settings.svg', href: '/admin/settings' },
+  { id: 'profile', label: 'Profile', icon: '/profile.svg', href: '/admin/profile' },
+  { id: 'inbox', label: 'Inbox', icon: '/inbox.svg', href: '/admin/inbox' },
+  { id: 'ranking', label: 'Ranking', icon: '/ranking.svg', href: '/admin/ranking' },
 ];
 
 export default function AdminPage() {
   const router = useRouter();
+
+  const handleSignOut = async () => {
+    const refreshToken = getRefreshToken();
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch {}
+    clearTokens();
+    router.push('/login');
+  };
 
   return (
     <div
@@ -33,20 +47,7 @@ export default function AdminPage() {
           borderRadius: '0 0 16px 16px',
         }}
       >
-        <button
-          onClick={() => router.back()}
-          className="w-20 h-20 flex items-center justify-center active:scale-95"
-        >
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M24 12H5M5 12L12 19M5 12L12 5"
-              stroke="white"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        <div className="w-20 h-20" />
 
         <h1 className="text-5xl font-black text-white tracking-wide text-center flex-1">
           Admin
@@ -62,7 +63,7 @@ export default function AdminPage() {
       </div>
 
       {/* BODY */}
-      <div className="flex-1 px-8 pt-14 pb-8 flex flex-col items-center w-full">
+      <div className="flex-1 px-8 pt-14 pb-8 flex flex-col items-center w-full overflow-y-auto">
 
         <div className="h-10" />
         
@@ -70,7 +71,7 @@ export default function AdminPage() {
           {adminMenu.map((item) => (
             <div key={item.id} className="flex flex-col items-center gap-3">
               <button
-                onClick={() => item.id === 'create' && router.push('/register')}
+                onClick={() => item.href && router.push(item.href)}
                 className="w-[125px] h-[125px] bg-white border-[4px] rounded-[16px] flex items-center justify-center shadow-md active:scale-95"
                 style={{ borderColor: '#980422' }}
               >
@@ -91,16 +92,16 @@ export default function AdminPage() {
           ))}
         </div>
 
-        <div className="h-20" />
+        <div className="h-6" />
 
         <button
-          onClick={() => router.push('/login')}
+          onClick={handleSignOut}
           className="flex items-center justify-center font-black text-xl tracking-widest active:scale-95 mb-6"
           style={{
             backgroundColor: '#980422',
             color: '#ffffff',
             width: '260px',
-            height: '60px',
+            height: '40px',
             borderRadius: '16px',
           }}
         >

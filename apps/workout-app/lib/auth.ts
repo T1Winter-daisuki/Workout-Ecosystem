@@ -14,5 +14,7 @@ export const getRefreshToken = () => localStorage.getItem('refreshToken')
 
 export const clearTokens = () => {
   Cookies.remove('accessToken')
+  Cookies.remove('role')
+  Cookies.remove('emailVerified')
   localStorage.removeItem('refreshToken')
 }
