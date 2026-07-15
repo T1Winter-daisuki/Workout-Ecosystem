@@ -11,8 +11,6 @@ import {
   resetPasswordSchema,
   forgotPasswordSchema,
   resendOtpSchema,
-  refreshTokenSchema,
-  logoutSchema,
 } from './auth.dto';
 
 // Extend Request để gắn user vào
@@ -43,8 +41,6 @@ export const validActivate = validate(activateSchema);
 export const validResetPassword = validate(resetPasswordSchema);
 export const validForgotPassword = validate(forgotPasswordSchema);
 export const validResendOtp = validate(resendOtpSchema);
-export const validRefreshToken = validate(refreshTokenSchema);
-export const validLogout = validate(logoutSchema);
 
 // Chống DDoS cơ bản
 export const loginRateLimit = rateLimit({
@@ -69,8 +65,7 @@ export const verifyToken = (
   res: Response,
   next: NextFunction,
 ) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = req.cookies?.accessToken;
 
   if (!token) {
     return res
@@ -78,7 +73,7 @@ export const verifyToken = (
       .json({ message: 'Please log in to use this feature' });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
+  jwt.verify(token, process.env.JWT_SECRET as string, (err: jwt.VerifyErrors | null, decoded: any) => {
     if (err) {
       return res
         .status(403)

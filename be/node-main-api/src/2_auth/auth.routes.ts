@@ -8,8 +8,6 @@ import {
   validResetPassword,
   validForgotPassword,
   validResendOtp,
-  validRefreshToken,
-  validLogout,
   loginRateLimit,
   otpRateLimit,
   verifyToken,
@@ -64,11 +62,11 @@ router.post(
   authController.resendOTP,
 );
 
-// Refresh token
-router.post('/refresh-token', validRefreshToken, authController.refreshToken);
+// Refresh token — refreshToken lấy từ cookie httpOnly, không cần validate body
+router.post('/refresh-token', authController.refreshToken);
 
-// Đăng xuất
-router.post('/logout', validLogout, authController.logout);
+// Đăng xuất — refreshToken lấy từ cookie httpOnly, không cần validate body
+router.post('/logout', authController.logout);
 
 // Lấy thông tin user đang đăng nhập (cần token)
 router.get('/me', verifyToken, authController.getMe);

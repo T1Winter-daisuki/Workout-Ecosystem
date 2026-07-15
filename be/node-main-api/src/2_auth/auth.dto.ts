@@ -139,15 +139,3 @@ export const resendOtpSchema = Joi.object({
       'any.required': 'Vui lòng nhập mật khẩu',
   }),
 });
-
-export const refreshTokenSchema = Joi.object({
-  refreshToken: Joi.string().required().messages({
-    'any.required': 'Vui lòng cung cấp refresh token',
-  }),
-});
-
-export const logoutSchema = Joi.object({
-  refreshToken: Joi.string().required().messages({
-    'any.required': 'Vui lòng cung cấp refresh token',
-  }),
-});
