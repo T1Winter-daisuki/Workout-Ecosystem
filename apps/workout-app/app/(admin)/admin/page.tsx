@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { getRefreshToken, clearTokens } from '@/lib/auth';
+import { clearTokens } from '@/lib/auth';
 
 const adminMenu = [
   { id: 'create', label: 'Create\naccount', icon: '/create.svg', href: '/register' },
@@ -16,12 +16,10 @@ export default function AdminPage() {
   const router = useRouter();
 
   const handleSignOut = async () => {
-    const refreshToken = getRefreshToken();
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
       });
     } catch {}
     clearTokens();

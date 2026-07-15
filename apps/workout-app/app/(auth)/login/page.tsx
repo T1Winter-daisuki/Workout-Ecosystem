@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-import { setTokens } from '@/lib/auth';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 import { BackButton } from '@/components/auth/BackButton';
 import { AuthHeader } from '@/components/auth/AuthHeader';
@@ -28,6 +27,7 @@ export default function LoginPage() {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify(form),
         },
       );
@@ -44,9 +44,6 @@ export default function LoginPage() {
         return;
       }
 
-      Cookies.set('emailVerified', 'true');
-      Cookies.set('role', data.role);
-      setTokens(data.accessToken, data.refreshToken);
       router.push(data.role === 'admin' ? '/admin' : '/home');
     } catch {
       setError('Connection error, please try again');

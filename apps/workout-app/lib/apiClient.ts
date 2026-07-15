@@ -1,52 +1,40 @@
-import {
-  getAccessToken,
-  getRefreshToken,
-  setAccessToken,
-  clearTokens,
-} from './auth';
+import { clearTokens } from './auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return null;
-
+// accessToken/refreshToken là cookie httpOnly, trình duyệt tự gửi kèm khi có credentials:'include'
+async function refreshAccessToken(): Promise<boolean> {
   const res = await fetch(`${API_URL}/api/auth/refresh-token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
+    credentials: 'include',
   });
-  if (!res.ok) return null;
-
-  const data = await res.json();
-  setAccessToken(data.accessToken);
-  return data.accessToken as string;
+  return res.ok;
 }
 
-// fetch có gắn sẵn accessToken, tự refresh 1 lần nếu accessToken hết hạn (401)
+// fetch tự gửi kèm cookie, tự refresh 1 lần nếu accessToken hết hạn (401)
 export async function apiFetch(
   path: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  const send = (token?: string) =>
+  const send = () =>
     fetch(`${API_URL}${path}`, {
       ...options,
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
     });
 
-  const res = await send(getAccessToken());
+  const res = await send();
   if (res.status !== 401) return res;
 
-  const newAccessToken = await refreshAccessToken();
-  if (!newAccessToken) {
+  const refreshed = await refreshAccessToken();
+  if (!refreshed) {
     clearTokens();
     if (typeof window !== 'undefined') window.location.href = '/login';
     return res;
   }
 
-  return send(newAccessToken);
+  return send();
 }
