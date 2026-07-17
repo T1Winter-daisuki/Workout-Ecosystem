@@ -152,5 +152,10 @@ export const logout = async (req: Request, res: Response) => {
 };
 
 export const getMe = async (req: AuthRequest, res: Response) => {
-  res.status(200).json({ user: req.user });
+  try {
+    const user = await authService.getCurrentUser(req.user!.userId);
+    res.status(200).json(user);
+  } catch (error: any) {
+    res.status(error.statusCode || 400).json({ message: error.message });
+  }
 };

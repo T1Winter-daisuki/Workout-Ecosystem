@@ -254,3 +254,15 @@ export const logoutUser = async (refreshToken: string) => {
   await prisma.sessions.delete({ where: { refresh_token: refreshToken } });
   return { message: 'Logged out successfully' };
 };
+
+export const getCurrentUser = async (userId: string) => {
+  const user = await prisma.users.findUnique({ where: { id: userId } });
+  if (!user) throw new NotFoundError('Tài khoản không tồn tại');
+
+  return {
+    name: user.username,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+  };
+};
