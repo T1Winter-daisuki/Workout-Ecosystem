@@ -169,3 +169,15 @@ export const updateName = async (req: AuthRequest, res: Response) => {
     res.status(error.statusCode || 400).json({ message: error.message });
   }
 };
+
+export const updateAvatar = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'Vui lòng chọn ảnh' });
+    }
+    const result = await authService.updateAvatar(req.user!.userId, req.file);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(error.statusCode || 400).json({ message: error.message });
+  }
+};

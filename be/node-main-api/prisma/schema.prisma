@@ -319,6 +319,7 @@ model users {
   email                   String?                  @unique
   username                String                   @unique
   name                    String?
+  avatar_url              String?
   password_hash           String?
   role                    String                   @default("user")
   email_verified          Boolean                  @default(false)

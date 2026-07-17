@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../prismaClient';
 import redis from '../1_config/redis';
 import { sendOTPEmail } from '../1_config/mailer';
+import { uploadAvatar } from '../1_config/supabaseStorage';
 import { RegisterPayload, LoginPayload, JwtPayload } from './auth.model';
 import {
   BadRequestError,
@@ -264,6 +265,7 @@ export const getCurrentUser = async (userId: string) => {
     name: user.name || user.username,
     username: user.username,
     email: user.email,
+    avatar: user.avatar_url,
   };
 };
 
@@ -274,4 +276,13 @@ export const updateName = async (userId: string, name: string) => {
     data: { name },
   });
   return { message: 'Cập nhật tên thành công' };
+};
+
+export const updateAvatar = async (userId: string, file: Express.Multer.File) => {
+  const avatarUrl = await uploadAvatar(userId, file);
+  await prisma.users.update({
+    where: { id: userId },
+    data: { avatar_url: avatarUrl },
+  });
+  return { message: 'Cập nhật ảnh đại diện thành công', avatar: avatarUrl };
 };

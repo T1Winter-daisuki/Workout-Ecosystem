@@ -13,6 +13,7 @@ import {
   otpRateLimit,
   verifyToken,
   requireAdmin,
+  avatarUpload,
 } from './auth.middleware';
 
 const router = Router();
@@ -74,5 +75,8 @@ router.get('/me', verifyToken, authController.getMe);
 
 // Đổi tên hiển thị (username/password không đổi được ở đây)
 router.patch('/name', verifyToken, validUpdateName, authController.updateName);
+
+// Đổi ảnh đại diện — upload lên Supabase Storage
+router.patch('/avatar', verifyToken, avatarUpload, authController.updateAvatar);
 
 export default router;

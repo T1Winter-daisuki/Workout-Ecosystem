@@ -1,5 +1,6 @@
 import Joi from 'joi';
 import rateLimit from 'express-rate-limit';
+import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { JwtPayload } from './auth.model';
@@ -60,6 +61,18 @@ export const otpRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+// avatar — lưu trong memory (buffer) để upload thẳng lên Supabase Storage, không ghi ra đĩa
+export const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Chỉ chấp nhận file ảnh'));
+    }
+    cb(null, true);
+  },
+}).single('avatar');
 
 // jwt
 export const verifyToken = (
