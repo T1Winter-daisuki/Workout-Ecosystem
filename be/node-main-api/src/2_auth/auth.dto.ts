@@ -19,6 +19,20 @@ export const registerSchema = Joi.object({
   }),
 });
 
+export const updateNameSchema = Joi.object({
+  name: Joi.string()
+    .custom((v) => escape(v))
+    .required()
+    .trim()
+    .min(1)
+    .max(50)
+    .messages({
+      'string.empty': 'Tên không được để trống',
+      'string.max': 'Tên không được quá 50 ký tự',
+      'any.required': 'Vui lòng nhập tên',
+    }),
+});
+
 export const loginSchema = Joi.object({
   email: Joi.string()
     .custom((v) => escape(v))

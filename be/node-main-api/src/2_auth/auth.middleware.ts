@@ -11,6 +11,7 @@ import {
   resetPasswordSchema,
   forgotPasswordSchema,
   resendOtpSchema,
+  updateNameSchema,
 } from './auth.dto';
 
 // Extend Request để gắn user vào
@@ -41,6 +42,7 @@ export const validActivate = validate(activateSchema);
 export const validResetPassword = validate(resetPasswordSchema);
 export const validForgotPassword = validate(forgotPasswordSchema);
 export const validResendOtp = validate(resendOtpSchema);
+export const validUpdateName = validate(updateNameSchema);
 
 // Chống DDoS cơ bản
 export const loginRateLimit = rateLimit({

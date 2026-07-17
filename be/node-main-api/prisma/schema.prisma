@@ -45,14 +45,6 @@ model daily_nutrition {
   @@index([user_id, date], map: "idx_daily_nutrition_user_date")
 }
 
-model email_verification_tokens {
-  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  user_id    String   @db.Uuid
-  token      String   @unique
-  expires_at DateTime @db.Timestamptz(6)
-  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-}
-
 model exercise_categories {
   id          String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name        String      @unique
@@ -145,15 +137,6 @@ model notifications {
   users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id], map: "idx_notifications_user_unread", where: raw("(is_read = false)"))
-}
-
-model password_reset_tokens {
-  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  user_id    String   @db.Uuid
-  token      String   @unique
-  expires_at DateTime @db.Timestamptz(6)
-  used       Boolean  @default(false)
-  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model personal_records {
@@ -332,33 +315,32 @@ model user_oauth {
 }
 
 model users {
-  id                        String                      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email                     String?                     @unique
-  username                  String                      @unique
-  password_hash             String?
-  role                      String                      @default("user")
-  email_verified            Boolean                     @default(false)
-  created_at                DateTime                    @default(now()) @db.Timestamptz(6)
-  updated_at                DateTime                    @default(now()) @db.Timestamptz(6)
-  daily_nutrition           daily_nutrition[]
-  email_verification_tokens email_verification_tokens[]
-  listening_history         listening_history[]
-  meal_templates            meal_templates[]
-  notifications             notifications[]
-  password_reset_tokens     password_reset_tokens[]
-  personal_records          personal_records[]
-  playlists                 playlists[]
-  sessions                  sessions[]
-  song_ratings              song_ratings[]
-  supplement_logs           supplement_logs[]
-  training_programs         training_programs[]
-  user_achievements         user_achievements[]
-  user_biometrics           user_biometrics[]
-  user_goals                user_goals[]
-  user_notification_prefs   user_notification_prefs?
-  user_oauth                user_oauth[]
-  workout_templates         workout_templates[]
-  workouts                  workouts[]
+  id                      String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                   String?                  @unique
+  username                String                   @unique
+  name                    String?
+  password_hash           String?
+  role                    String                   @default("user")
+  email_verified          Boolean                  @default(false)
+  created_at              DateTime                 @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime                 @default(now()) @db.Timestamptz(6)
+  daily_nutrition         daily_nutrition[]
+  listening_history       listening_history[]
+  meal_templates          meal_templates[]
+  notifications           notifications[]
+  personal_records        personal_records[]
+  playlists               playlists[]
+  sessions                sessions[]
+  song_ratings            song_ratings[]
+  supplement_logs         supplement_logs[]
+  training_programs       training_programs[]
+  user_achievements       user_achievements[]
+  user_biometrics         user_biometrics[]
+  user_goals              user_goals[]
+  user_notification_prefs user_notification_prefs?
+  user_oauth              user_oauth[]
+  workout_templates       workout_templates[]
+  workouts                workouts[]
 }
 
 model workout_sets {

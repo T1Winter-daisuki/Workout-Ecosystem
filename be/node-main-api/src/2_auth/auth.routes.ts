@@ -8,6 +8,7 @@ import {
   validResetPassword,
   validForgotPassword,
   validResendOtp,
+  validUpdateName,
   loginRateLimit,
   otpRateLimit,
   verifyToken,
@@ -70,5 +71,8 @@ router.post('/logout', authController.logout);
 
 // Lấy thông tin user đang đăng nhập (cần token)
 router.get('/me', verifyToken, authController.getMe);
+
+// Đổi tên hiển thị (username/password không đổi được ở đây)
+router.patch('/name', verifyToken, validUpdateName, authController.updateName);
 
 export default router;

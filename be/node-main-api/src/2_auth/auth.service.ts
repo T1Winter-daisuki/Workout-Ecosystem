@@ -46,6 +46,7 @@ export const registerUser = async (payload: RegisterPayload) => {
     data: {
       email: null,
       username,
+      name: username,
       password_hash,
       role: 'user',
       email_verified: false,
@@ -260,9 +261,17 @@ export const getCurrentUser = async (userId: string) => {
   if (!user) throw new NotFoundError('Tài khoản không tồn tại');
 
   return {
-    name: user.username,
+    name: user.name || user.username,
     username: user.username,
     email: user.email,
-    role: user.role,
   };
+};
+
+// Đổi tên hiển thị — username/password không cho đổi ở đây
+export const updateName = async (userId: string, name: string) => {
+  await prisma.users.update({
+    where: { id: userId },
+    data: { name },
+  });
+  return { message: 'Cập nhật tên thành công' };
 };

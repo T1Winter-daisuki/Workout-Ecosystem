@@ -159,3 +159,13 @@ export const getMe = async (req: AuthRequest, res: Response) => {
     res.status(error.statusCode || 400).json({ message: error.message });
   }
 };
+
+export const updateName = async (req: AuthRequest, res: Response) => {
+  try {
+    const { name } = req.body;
+    const result = await authService.updateName(req.user!.userId, name);
+    res.status(200).json(result);
+  } catch (error: any) {
+    res.status(error.statusCode || 400).json({ message: error.message });
+  }
+};
