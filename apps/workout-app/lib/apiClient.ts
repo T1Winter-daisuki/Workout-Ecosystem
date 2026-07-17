@@ -16,12 +16,15 @@ export async function apiFetch(
   path: string,
   options: RequestInit = {},
 ): Promise<Response> {
+  // FormData: để trình duyệt tự set Content-Type kèm boundary, không ép application/json
+  const isFormData = options.body instanceof FormData;
+
   const send = () =>
     fetch(`${API_URL}${path}`, {
       ...options,
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...options.headers,
       },
     });

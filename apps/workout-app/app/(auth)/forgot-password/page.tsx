@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthBackground>
-      <BackButton onClick={() => router.push('/login')} />
+      <BackButton onClick={() => router.back()} />
       <AuthHeader lines={['Forgot', 'Password']} />
 
       <AuthCard height="400px" paddingBottom="70px">

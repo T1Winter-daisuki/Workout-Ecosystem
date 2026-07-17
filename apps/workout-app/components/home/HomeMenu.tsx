@@ -6,13 +6,16 @@ import { usePathname, useRouter } from 'next/navigation';
 // Mỗi trang có 1 bản menu riêng với icon trang đó được tô màu nổi bật.
 // Toạ độ hitbox đo trực tiếp từ file SVG (canvas 1201x290, thanh bar bắt đầu từ y≈89,
 // vòng tròn "+" đã vẽ sẵn giữa mép trên của bar).
-const menuByPath: Record<string, string> = {
-  '/home': '/Home/home_menu.svg',
-  '/home/message': '/Home/mes_menu.svg',
-  '/home/create_plan': '/Home/create_menu.svg',
-  '/home/ranking_user': '/Home/rank_menu.svg',
-  '/home/user': '/Home/user_menu.svg',
-};
+// Khớp theo tiền tố (không phải khớp tuyệt đối) — nhờ vậy mọi trang con nằm dưới 1 tab
+// (VD /home/user/profile, /home/user/xyz...) đều tự dùng chung ảnh menu của tab cha.
+// Thứ tự không quan trọng vì không có path nào là tiền tố của path khác (trừ '/home' —
+// nó khớp mọi thứ nên phải xử lý làm giá trị mặc định, không đưa vào danh sách này).
+const menuByPrefix: [string, string][] = [
+  ['/home/message', '/Home/mes_menu.svg'],
+  ['/home/create_plan', '/Home/create_menu.svg'],
+  ['/home/ranking_user', '/Home/rank_menu.svg'],
+  ['/home/user', '/Home/user_menu.svg'],
+];
 
 const hitboxes = [
   { id: 'home', href: '/home', left: '10.4%', top: '63%' },
@@ -24,7 +27,9 @@ const hitboxes = [
 export function HomeMenu() {
   const router = useRouter();
   const pathname = usePathname();
-  const menuSrc = menuByPath[pathname] ?? '/Home/home_menu.svg';
+  const menuSrc =
+    menuByPrefix.find(([prefix]) => pathname.startsWith(prefix))?.[1] ??
+    '/Home/home_menu.svg';
 
   return (
     <div className="relative w-full">
