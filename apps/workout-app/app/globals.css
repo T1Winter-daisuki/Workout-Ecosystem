@@ -10,9 +10,13 @@ body {
   overflow-x: hidden;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* @layer base để utility như .underline (layer "utilities", ưu tiên cao hơn "base")
+   vẫn ghi đè được — CSS ngoài mọi layer luôn thắng CSS trong layer bất kể độ đặc hiệu */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 .imgDark {
