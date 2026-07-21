@@ -4,6 +4,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRouter from './2_auth/auth.routes';
+import chatRouter from './3_chat/chat.routes';
 
 dns.setDefaultResultOrder('ipv4first');
 
@@ -22,6 +23,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 // Routes
 app.use('/api/auth', authRouter);
+app.use('/api/chat', chatRouter);
 
 // Route không tồn tại
 app.use((req: Request, res: Response) => {

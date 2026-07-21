@@ -27,6 +27,20 @@ model ai_voice_models {
   songs          songs[]
 }
 
+// Chat 1-1: mỗi cặp user chỉ có 1 conversation — service luôn sort 2 id
+// trước khi tạo để @@unique([user1_id, user2_id]) chặn được bản ghi đảo chiều
+model conversations {
+  id         String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user1_id   String     @db.Uuid
+  user2_id   String     @db.Uuid
+  created_at DateTime   @default(now()) @db.Timestamptz(6)
+  user1      users      @relation("conversations_user1", fields: [user1_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user2      users      @relation("conversations_user2", fields: [user2_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  messages   messages[]
+
+  @@unique([user1_id, user2_id])
+}
+
 model daily_nutrition {
   id                String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   user_id           String   @db.Uuid
@@ -124,6 +138,22 @@ model meals {
   daily_nutrition    daily_nutrition   @relation(fields: [daily_nutrition_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([daily_nutrition_id], map: "idx_meals_daily_nutrition_id")
+}
+
+model messages {
+  id              String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  conversation_id String        @db.Uuid
+  sender_id       String        @db.Uuid
+  content         String
+  file_url        String?
+  file_name       String?
+  file_size       Int?
+  read_at         DateTime?     @db.Timestamptz(6)
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  conversations   conversations @relation(fields: [conversation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sender          users         @relation(fields: [sender_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([conversation_id, created_at], map: "idx_messages_conversation_created")
 }
 
 model notifications {
@@ -325,6 +355,9 @@ model users {
   email_verified          Boolean                  @default(false)
   created_at              DateTime                 @default(now()) @db.Timestamptz(6)
   updated_at              DateTime                 @default(now()) @db.Timestamptz(6)
+  conversations_user1     conversations[]          @relation("conversations_user1")
+  conversations_user2     conversations[]          @relation("conversations_user2")
+  messages                messages[]
   daily_nutrition         daily_nutrition[]
   listening_history       listening_history[]
   meal_templates          meal_templates[]
